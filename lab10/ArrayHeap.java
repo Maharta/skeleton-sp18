@@ -222,8 +222,74 @@ public class ArrayHeap<T> implements ExtrinsicPQ<T> {
      */
     @Override
     public void changePriority(T item, double priority) {
-        /* TODO: Your code here! */
-        return;
+        int firstIndex = 1;
+        int secondIndex = 1; // checking two children at the same time to have faster runtime. On first iteration this will be 1 (also the root)
+        changePriority(item, priority, firstIndex, secondIndex);
+    }
+
+    /**
+     * Implemented changePriority with recursion.
+     * this algorithm check 2 children at the same time. Also works when there is multiple same item in the heap. */
+    private void changePriority(T item, double priority, int firstIndex, int secondIndex) {
+        Node firstNode = getNode(firstIndex);
+        Node secondNode = getNode(secondIndex);
+
+        if (firstNode == null && secondNode == null) {
+            return;
+        }
+
+        if (firstNode != null && firstNode.item().equals(item)) {
+            double oldPriority = firstNode.priority();
+            firstNode.myPriority = priority;
+            sinkOrSwim(firstIndex, oldPriority);
+        }
+
+        if (secondNode != null && secondNode.item().equals(item)) {
+            double oldPriority = secondNode.priority();
+            secondNode.myPriority = priority;
+            sinkOrSwim(secondIndex, oldPriority);
+        }
+
+        int[] firstNodeChildren = getChildrenIndices(firstIndex);
+        changePriority(item, priority, firstNodeChildren[0], firstNodeChildren[1]);
+
+        if (firstIndex != secondIndex) {
+            int[] secondNodeChildren = getChildrenIndices(secondIndex);
+            changePriority(item, priority, secondNodeChildren[0], secondNodeChildren[1]);
+        }
+    }
+
+    private int[] getChildrenIndices(int index) {
+        int left = leftIndex(index);
+        int right = rightIndex(index);
+        return new int[]{left, right};
+    }
+
+    /** simple / clean version of change priority. The recursive version that I did was for practice. */
+    private void changePrioritySimple(T item, double priority) {
+        for (int i = 1; i <= size; i++) {
+            Node currNode = getNode(i);
+            if (currNode == null) continue;
+            if (currNode.item().equals(item)) {
+                double oldPriority = currNode.priority();
+                currNode.myPriority = priority;
+                sinkOrSwim(i, oldPriority);
+            }
+        }
+    }
+
+    /** helper method to determine whether a changed item need to swim or sink after it's priority changed. */
+    private void sinkOrSwim(int index, double oldPriority) {
+        validateSinkSwimArg(index);
+        Node node = getNode(index);
+        if (node == null) {
+            return;
+        }
+        if (node.priority() > oldPriority) {
+            sink(index);
+        } else {
+            swim(index);
+        }
     }
 
     /**
